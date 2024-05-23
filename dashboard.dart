@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart'; // Package for date formatting
+import 'package:intl/intl.dart';
+import 'package:thrive/main.dart'; // Package for date formatting
 
 void main() => runApp(const MyApp1());
 
@@ -200,7 +201,7 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 10),
             Container(
               width: double.infinity,
-              child: ElevatedButton(
+              child: ElevatedButton.icon(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -210,7 +211,22 @@ class HomePage extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text('Upcoming Event'),
+                icon: Icon(Icons.event, color: Colors.white),
+                label: const Text('Upcoming Event'),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.blueAccent,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                  textStyle: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromRGBO(
+                        255, 255, 255, 1), // Mengatur warna teks menjadi putih
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -433,8 +449,7 @@ class _ThriveHubPageState extends State<ThriveHubPage> {
       searchText = query;
       filteredCommunities = communities
           .where((community) =>
-              community.name.toLowerCase().contains(query.toLowerCase()) ||
-              community.category.toLowerCase().contains(query.toLowerCase()))
+              community.name.toLowerCase().contains(query.toLowerCase()))
           .toList();
     });
   }
@@ -462,59 +477,150 @@ class _ThriveHubPageState extends State<ThriveHubPage> {
 
   @override
   Widget build(BuildContext context) {
+    List<Community> topCommunities = communities.take(5).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('ThriveHub'),
+        backgroundColor: Colors.blue, // Warna AppBar
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                labelText: 'Cari Komunitas',
-                prefixIcon: Icon(Icons.search),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                decoration: const InputDecoration(
+                  labelText: 'Cari Komunitas',
+                  prefixIcon: Icon(Icons.search),
+                ),
+                onChanged: filterCommunities,
               ),
-              onChanged: filterCommunities,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const CreateCommunityPage()),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const CreateCommunityPage()),
+                  );
+                },
+                icon: Icon(Icons.add),
+                label: const Text('Buat Komunitas'),
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.blue, // Background color
+                  onPrimary: Colors.white, // Text color
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  textStyle: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Icon(Icons.star, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text(
+                    'Komunitas Terkenal',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: searchText.isEmpty
+                  ? topCommunities.length
+                  : filteredCommunities.length,
+              itemBuilder: (context, index) {
+                final community = searchText.isEmpty
+                    ? topCommunities[index]
+                    : filteredCommunities[index];
+                return ListTile(
+                  leading: Icon(Icons.group, color: Colors.blue),
+                  title: Text(community.name),
+                  subtitle: Text(community.description),
+                  trailing: ElevatedButton(
+                    onPressed: () => joinCommunity(community),
+                    child: const Text('Gabung'),
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.blue, // Background color
+                      onPrimary: Colors.white, // Text color
+                    ),
+                  ),
                 );
               },
-              child: const Text('Buat Komunitas'),
             ),
-          ),
-          Expanded(
-            child: ListView(
-              children: [
-                ListTile(
-                  title: const Text('Komunitas Sosial'),
-                  onTap: () => navigateToCategoryPage('Sosial'),
-                ),
-                ListTile(
-                  title: const Text('Komunitas Pendidikan'),
-                  onTap: () => navigateToCategoryPage('Pendidikan'),
-                ),
-                ListTile(
-                  title: const Text('Komunitas Kesehatan'),
-                  onTap: () => navigateToCategoryPage('Kesehatan'),
-                ),
-                ListTile(
-                  title: const Text('Komunitas Lingkungan'),
-                  onTap: () => navigateToCategoryPage('Lingkungan'),
-                ),
-              ],
+            const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Icon(Icons.category, color: Colors.blue),
+                  SizedBox(width: 8),
+                  Text(
+                    'Kategori Komunitas',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: GridView.count(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                childAspectRatio: 3 / 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                children: [
+                  categoryCard('Komunitas Sosial', Icons.people, 'Sosial'),
+                  categoryCard(
+                      'Komunitas Pendidikan', Icons.school, 'Pendidikan'),
+                  categoryCard(
+                      'Komunitas Kesehatan', Icons.local_hospital, 'Kesehatan'),
+                  categoryCard('Komunitas Lingkungan', Icons.eco, 'Lingkungan'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget categoryCard(String title, IconData icon, String category) {
+    return GestureDetector(
+      onTap: () => navigateToCategoryPage(category),
+      child: Card(
+        color: Colors.blue.shade100,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 40,
+              color: Colors.blue.shade700,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue.shade700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -558,6 +664,34 @@ class CommunityDetailPage extends StatelessWidget {
   }
 }
 
+class SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+
+  const SectionHeader({
+    Key? key,
+    required this.icon,
+    required this.title,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: <Widget>[
+        Icon(icon, color: Colors.blue),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class ProfilePage extends StatelessWidget {
   const ProfilePage({Key? key}) : super(key: key);
 
@@ -568,279 +702,231 @@ class ProfilePage extends StatelessWidget {
             ?.joinedCommunities ??
         [];
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue, Colors.deepOrange.shade300],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                stops: const [0.5, 0.9],
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.blue, Colors.deepOrange.shade300],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  stops: const [0.5, 0.9],
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  CircleAvatar(
+                    backgroundColor: Colors.white70,
+                    minRadius: 60.0,
+                    child: CircleAvatar(
+                      radius: 50.0,
+                      backgroundImage: NetworkImage(
+                          'https://avatars0.githubusercontent.com/u/28812093?s=460&u=06471c90e12ea328401c4322b9a169a30eae60b9&v=4'),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Steven Dermawan',
+                    style: TextStyle(
+                      fontSize: 22.0,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Jakarta, Indonesia',
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.white),
+                        onPressed: () {
+                          // Add action for editing profile
+                        },
+                      ),
+                    ],
+                  ),
+                  const Text(
+                    'Mentor Komunitas',
+                    style: TextStyle(
+                      fontSize: 19.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const CreateEventPage()),
+                      );
+                    },
+                    icon: const Icon(Icons.event, color: Colors.blue),
+                    label: const Text('Create Event'),
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.white,
+                      onPrimary: Colors.deepOrange.shade300,
+                      fixedSize: const Size(200, 40), // Set fixed size
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      // Add action for toggling theme
+                    },
+                    icon: const Icon(Icons.brightness_6, color: Colors.blue),
+                    label: const Text('Toggle Theme'),
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.white,
+                      onPrimary: Colors.deepOrange.shade300,
+                      fixedSize: const Size(200, 40), // Set fixed size
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    CircleAvatar(
-                      backgroundColor: Colors.red.shade300,
-                      minRadius: 35.0,
-                      child: const Icon(
-                        Icons.call,
-                        size: 30.0,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  const SizedBox(height: 20),
+                  _buildSectionTitle(context, Icons.person, 'About Me'),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'I am a passionate developer with a love for learning new technologies and improving my skills. In my free time, I enjoy reading, hiking, and exploring new places.',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle(context, Icons.interests, 'Interests'),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: const <Widget>[
+                      Chip(label: Text('Coding')),
+                      Chip(label: Text('Reading')),
+                      Chip(label: Text('Hiking')),
+                      Chip(label: Text('Traveling')),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle(
+                      context, Icons.group, 'Communities Joined'),
+                  const SizedBox(height: 10),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: joinedCommunities.length,
+                    itemBuilder: (context, index) {
+                      final community = joinedCommunities[index];
+                      return ListTile(
+                        title: Text(community.name),
+                        subtitle: Text(community.description),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle(
+                      context, Icons.contact_mail, 'Contact Information'),
+                  const SizedBox(height: 10),
+                  ListTile(
+                    leading: const Icon(Icons.email, color: Colors.blue),
+                    title: const Text('steven.dermawan@example.com'),
+                    onTap: () {
+                      // Add email action
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.phone, color: Colors.blue),
+                    title: const Text('+62 812-3456-7890'),
+                    onTap: () {
+                      // Add phone action
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle(context, Icons.web, 'Social Media'),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: const <Widget>[
+                      Chip(
+                        avatar: Icon(Icons.link),
+                        label: Text('LinkedIn'),
                       ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        // Add action for updating profile picture
+                      Chip(
+                        avatar: Icon(Icons.link),
+                        label: Text('Twitter'),
+                      ),
+                      Chip(
+                        avatar: Icon(Icons.link),
+                        label: Text('Facebook'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MyApp(),
+                          ),
+                        );
                       },
-                      child: const CircleAvatar(
-                        backgroundColor: Colors.white70,
-                        minRadius: 60.0,
-                        child: CircleAvatar(
-                          radius: 50.0,
-                          backgroundImage: NetworkImage(
-                              'https://avatars0.githubusercontent.com/u/28812093?s=460&u=06471c90e12ea328401c4322b9a169a30eae60b9&v=4'),
+                      icon: const Icon(Icons.logout, color: Colors.white),
+                      label: const Text(
+                        'Logout',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.red,
+                        onPrimary: Colors.white,
+                        fixedSize: const Size(200, 40), // Set fixed size
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
                       ),
                     ),
-                    CircleAvatar(
-                      backgroundColor: Colors.red.shade300,
-                      minRadius: 35.0,
-                      child: const Icon(
-                        Icons.message,
-                        size: 30.0,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Steven Dermawan',
-                  style: TextStyle(
-                    fontSize: 22.0,
-                    color: Colors.white,
                   ),
-                ),
-                const Text(
-                  'Jakarta, Indonesia',
-                  style: TextStyle(
-                    fontSize: 14.0,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Add action for editing profile
-                  },
-                  icon: const Icon(Icons.edit, color: Colors.blue),
-                  label: const Text('Edit Profile'),
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.white,
-                    onPrimary: Colors.deepOrange.shade300,
-                    fixedSize: const Size(200, 40), // Set fixed size
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const CreateEventPage()),
-                    );
-                  },
-                  icon: const Icon(Icons.edit, color: Colors.blue),
-                  label: const Text('Create Event'),
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.white,
-                    onPrimary: Colors.deepOrange.shade300,
-                    fixedSize: const Size(200, 40), // Set fixed size
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Add action for toggling theme
-                  },
-                  icon: const Icon(Icons.brightness_6, color: Colors.blue),
-                  label: const Text('Toggle Theme'),
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.white,
-                    onPrimary: Colors.deepOrange.shade300,
-                    fixedSize: const Size(200, 40), // Set fixed size
-                  ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                const SizedBox(height: 20),
-                Row(
-                  children: const [
-                    Icon(Icons.person, color: Colors.blue),
-                    SizedBox(width: 10),
-                    Text(
-                      'About Me',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'I am a passionate developer with a love for learning new technologies and improving my skills. In my free time, I enjoy reading, hiking, and exploring new places.',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: const [
-                    Icon(Icons.interests, color: Colors.blue),
-                    SizedBox(width: 10),
-                    Text(
-                      'Interests',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: const <Widget>[
-                    Chip(label: Text('Coding')),
-                    Chip(label: Text('Reading')),
-                    Chip(label: Text('Hiking')),
-                    Chip(label: Text('Traveling')),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: const [
-                    Icon(Icons.group, color: Colors.blue),
-                    SizedBox(width: 10),
-                    Text(
-                      'Communities Joined',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: joinedCommunities.length,
-                  itemBuilder: (context, index) {
-                    final community = joinedCommunities[index];
-                    return ListTile(
-                      title: Text(community.name),
-                      subtitle: Text(community.description),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: const [
-                    Icon(Icons.contact_mail, color: Colors.blue),
-                    SizedBox(width: 10),
-                    Text(
-                      'Contact Information',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                ListTile(
-                  leading: const Icon(Icons.email, color: Colors.blue),
-                  title: const Text('steven.dermawan@example.com'),
-                  onTap: () {
-                    // Add email action
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.phone, color: Colors.blue),
-                  title: const Text('+62 812-3456-7890'),
-                  onTap: () {
-                    // Add phone action
-                  },
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: const [
-                    Icon(Icons.web, color: Colors.blue),
-                    SizedBox(width: 10),
-                    Text(
-                      'Social Media',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: const <Widget>[
-                    Chip(
-                      avatar: Icon(Icons.link),
-                      label: Text('LinkedIn'),
-                    ),
-                    Chip(
-                      avatar: Icon(Icons.link),
-                      label: Text('Twitter'),
-                    ),
-                    Chip(
-                      avatar: Icon(Icons.link),
-                      label: Text('Facebook'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/');
-                  },
-                  icon: const Icon(Icons.logout, color: Colors.red),
-                  label: const Text(
-                    'Logout',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.white,
-                    fixedSize: const Size(200, 40), // Set fixed size
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildSectionTitle(BuildContext context, IconData icon, String title) {
+    return Row(
+      children: <Widget>[
+        Icon(icon, color: Colors.blue),
+        const SizedBox(width: 10),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -860,9 +946,16 @@ class _CreateEventPageState extends State<CreateEventPage> {
   String _endTime = '';
   String _eventLocation = '';
 
+  final TextEditingController _eventNameController = TextEditingController();
+  final TextEditingController _eventDateController = TextEditingController();
+  final TextEditingController _startTimeController = TextEditingController();
+  final TextEditingController _endTimeController = TextEditingController();
+  final TextEditingController _eventLocationController =
+      TextEditingController();
+
   Future<void> _submitEvent() async {
     final url =
-        'http://localhost/backendadmin/add_event.php'; // Ganti dengan URL server Anda
+        'http://localhost/backendadmin/add_event.php'; // Update with your server URL
     final response = await http.post(
       Uri.parse(url),
       body: {
@@ -876,12 +969,19 @@ class _CreateEventPageState extends State<CreateEventPage> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Event created successfully!')),
+        const SnackBar(content: Text('Event created successfully!')),
       );
-      Navigator.pop(context); // Kembali ke halaman profil
+      _formKey.currentState?.reset(); // Clear the form fields
+      setState(() {
+        _eventName = '';
+        _eventDate = '';
+        _startTime = '';
+        _endTime = '';
+        _eventLocation = '';
+      });
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to create event.')),
+        const SnackBar(content: Text('Failed to create event.')),
       );
     }
   }
@@ -914,6 +1014,16 @@ class _CreateEventPageState extends State<CreateEventPage> {
   }
 
   @override
+  void dispose() {
+    _eventNameController.dispose();
+    _eventDateController.dispose();
+    _startTimeController.dispose();
+    _endTimeController.dispose();
+    _eventLocationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -926,6 +1036,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
           child: Column(
             children: <Widget>[
               TextFormField(
+                controller: _eventNameController,
                 decoration: const InputDecoration(labelText: 'Event Name'),
                 onSaved: (value) {
                   _eventName = value ?? '';
@@ -938,6 +1049,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 },
               ),
               TextFormField(
+                controller: _eventDateController,
                 decoration:
                     const InputDecoration(labelText: 'Event Date (YYYY-MM-DD)'),
                 keyboardType: TextInputType.datetime,
@@ -947,6 +1059,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 validator: _validateDate,
               ),
               TextFormField(
+                controller: _startTimeController,
                 decoration:
                     const InputDecoration(labelText: 'Start Time (HH:MM)'),
                 keyboardType: TextInputType.datetime,
@@ -956,6 +1069,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 validator: _validateTime,
               ),
               TextFormField(
+                controller: _endTimeController,
                 decoration:
                     const InputDecoration(labelText: 'End Time (HH:MM)'),
                 keyboardType: TextInputType.datetime,
@@ -965,6 +1079,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 validator: _validateTime,
               ),
               TextFormField(
+                controller: _eventLocationController,
                 decoration: const InputDecoration(labelText: 'Event Location'),
                 onSaved: (value) {
                   _eventLocation = value ?? '';
@@ -981,6 +1096,14 @@ class _CreateEventPageState extends State<CreateEventPage> {
                 onPressed: () {
                   if (_formKey.currentState?.validate() ?? false) {
                     _formKey.currentState?.save();
+
+                    // Clear the text fields immediately after the form is validated
+                    _eventNameController.clear();
+                    _eventDateController.clear();
+                    _startTimeController.clear();
+                    _endTimeController.clear();
+                    _eventLocationController.clear();
+
                     _submitEvent();
                   }
                 },
@@ -1049,7 +1172,10 @@ class CommunityInfoPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title),
+        title: Text(title,
+            style: TextStyle(
+                fontFamily: 'Montserrat', fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.deepPurple,
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -1058,40 +1184,55 @@ class CommunityInfoPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                'Materials and Short Courses',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                'Art Materials and Short Courses',
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Montserrat'),
               ),
               const SizedBox(height: 10),
               Text(
                 description,
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(
+                    fontSize: 16, fontFamily: 'Montserrat', height: 1.5),
               ),
               const SizedBox(height: 20),
               Text(
-                'Upcoming Events',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                'Upcoming Art Events',
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Montserrat'),
               ),
               const SizedBox(height: 10),
               _buildEventItem(
-                  'Flutter Workshop',
-                  'Learn the basics of Flutter in a hands-on workshop.',
+                  'Watercolor Workshop',
+                  'Explore the beauty of watercolor painting in an immersive workshop.',
                   'June 25, 2024'),
-              _buildEventItem('Advanced Dart Programming',
-                  'Deep dive into Dart programming language.', 'July 10, 2024'),
+              _buildEventItem(
+                  'Abstract Art Techniques',
+                  'Learn various abstract art techniques in this interactive session.',
+                  'July 10, 2024'),
               const SizedBox(height: 20),
               Text(
                 'Testimonials',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Montserrat'),
               ),
               const SizedBox(height: 10),
-              _buildTestimonial('John Doe',
-                  'This community has been a game-changer for my career. The resources are top-notch.'),
-              _buildTestimonial('Jane Smith',
-                  'I learned so much from the short courses offered here. Highly recommend!'),
+              _buildTestimonial('Alice Brown',
+                  'This art community has transformed my artistic journey. The resources and workshops are exceptional.'),
+              _buildTestimonial('Michael Lee',
+                  'The short courses are incredibly insightful and have significantly improved my art skills.'),
               const SizedBox(height: 20),
               Text(
                 'Contact Us',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Montserrat'),
               ),
               const SizedBox(height: 10),
               _buildContactForm(),
@@ -1103,43 +1244,69 @@ class CommunityInfoPage extends StatelessWidget {
   }
 
   Widget _buildEventItem(String title, String description, String date) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Montserrat'),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              description,
+              style: TextStyle(fontSize: 16, fontFamily: 'Montserrat'),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              date,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                  fontFamily: 'Montserrat'),
+            ),
+          ],
         ),
-        const SizedBox(height: 5),
-        Text(
-          description,
-          style: TextStyle(fontSize: 16),
-        ),
-        const SizedBox(height: 5),
-        Text(
-          date,
-          style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-        ),
-        const SizedBox(height: 20),
-      ],
+      ),
     );
   }
 
   Widget _buildTestimonial(String name, String feedback) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          name,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              name,
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Montserrat'),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              feedback,
+              style: TextStyle(
+                  fontSize: 16,
+                  fontStyle: FontStyle.italic,
+                  fontFamily: 'Montserrat'),
+            ),
+          ],
         ),
-        const SizedBox(height: 5),
-        Text(
-          feedback,
-          style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-        ),
-        const SizedBox(height: 20),
-      ],
+      ),
     );
   }
 
@@ -1150,30 +1317,45 @@ class CommunityInfoPage extends StatelessWidget {
         TextField(
           decoration: InputDecoration(
             labelText: 'Name',
-            border: OutlineInputBorder(),
+            labelStyle: TextStyle(fontFamily: 'Montserrat'),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
         const SizedBox(height: 10),
         TextField(
           decoration: InputDecoration(
             labelText: 'Email',
-            border: OutlineInputBorder(),
+            labelStyle: TextStyle(fontFamily: 'Montserrat'),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
         const SizedBox(height: 10),
         TextField(
           decoration: InputDecoration(
             labelText: 'Message',
-            border: OutlineInputBorder(),
+            labelStyle: TextStyle(fontFamily: 'Montserrat'),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
           maxLines: 5,
         ),
         const SizedBox(height: 20),
-        ElevatedButton(
-          onPressed: () {
-            // Handle form submission
-          },
-          child: Text('Submit'),
+        Center(
+          child: ElevatedButton(
+            onPressed: () {
+              // Handle form submission
+            },
+            style: ElevatedButton.styleFrom(
+              primary: Colors.blueAccent,
+              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+              textStyle: TextStyle(
+                  fontSize: 18,
+                  fontFamily: 'Montserrat',
+                  color: Colors.white), // Change text color to white
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: Text('Submit', style: TextStyle(fontFamily: 'Montserrat')),
+          ),
         ),
       ],
     );
@@ -1487,6 +1669,10 @@ class CardExample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      elevation: 5,
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
@@ -1494,24 +1680,67 @@ class CardExample extends StatelessWidget {
           children: <Widget>[
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
             const SizedBox(height: 5),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 16, color: Colors.blue),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blue.shade700,
+              ),
             ),
             const SizedBox(height: 10),
-            Text(content),
-            const SizedBox(height: 10),
+            Text(
+              content,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue, // Background color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
                   onPressed: onPressed1,
-                  child: const Text('Join'),
+                  child: const Text(
+                    'Join',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.white, // Background color
+                    side: BorderSide(
+                      color: Colors.blue.shade700, // Border color
+                      width: 2, // Border width
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -1523,7 +1752,13 @@ class CardExample extends StatelessWidget {
                       ),
                     );
                   },
-                  child: const Text('Info'),
+                  child: Text(
+                    'Info',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1555,6 +1790,10 @@ class CardExample1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      elevation: 5,
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
@@ -1562,24 +1801,67 @@ class CardExample1 extends StatelessWidget {
           children: <Widget>[
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
             const SizedBox(height: 5),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 16, color: Colors.blue),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blue.shade700,
+              ),
             ),
             const SizedBox(height: 10),
-            Text(content),
-            const SizedBox(height: 10),
+            Text(
+              content,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue, // Background color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
                   onPressed: onPressed1,
-                  child: const Text('Join'),
+                  child: const Text(
+                    'Join',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.white, // Background color
+                    side: BorderSide(
+                      color: Colors.blue.shade700, // Border color
+                      width: 2, // Border width
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -1591,7 +1873,13 @@ class CardExample1 extends StatelessWidget {
                       ),
                     );
                   },
-                  child: const Text('Info'),
+                  child: Text(
+                    'Info',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1623,6 +1911,10 @@ class CardExample2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      elevation: 5,
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Column(
@@ -1630,24 +1922,67 @@ class CardExample2 extends StatelessWidget {
           children: <Widget>[
             Text(
               title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
             const SizedBox(height: 5),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 16, color: Colors.blue),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.blue.shade700,
+              ),
             ),
             const SizedBox(height: 10),
-            Text(content),
-            const SizedBox(height: 10),
+            Text(
+              content,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.blue, // Background color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
                   onPressed: onPressed1,
-                  child: const Text('Join'),
+                  child: const Text(
+                    'Join',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.white, // Background color
+                    side: BorderSide(
+                      color: Colors.blue.shade700, // Border color
+                      width: 2, // Border width
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+                  ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -1659,7 +1994,13 @@ class CardExample2 extends StatelessWidget {
                       ),
                     );
                   },
-                  child: const Text('Info'),
+                  child: Text(
+                    'Info',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -1695,9 +2036,18 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
   late String _description;
   late String _category;
 
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _categoryController = TextEditingController();
+
   Future<void> _saveCommunity() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      // Clear the text fields immediately after the form is validated
+      _nameController.clear();
+      _descriptionController.clear();
+      _categoryController.clear();
 
       final response = await http.post(
         Uri.parse('http://localhost/backendadmin/save_community.php'),
@@ -1724,6 +2074,11 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
           thriveHubPageState.communities.add(newCommunity);
         });
 
+        // Show success notification
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('BERHASIL BUAT KOMUNITAS')),
+        );
+
         Navigator.pop(context);
       } else {
         // Handle error
@@ -1732,6 +2087,14 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
         );
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _categoryController.dispose();
+    super.dispose();
   }
 
   @override
@@ -1747,6 +2110,7 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
           child: Column(
             children: <Widget>[
               TextFormField(
+                controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Nama Komunitas'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -1759,6 +2123,7 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
                 },
               ),
               TextFormField(
+                controller: _descriptionController,
                 decoration: const InputDecoration(labelText: 'Deskripsi'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -1771,6 +2136,7 @@ class _CreateCommunityPageState extends State<CreateCommunityPage> {
                 },
               ),
               TextFormField(
+                controller: _categoryController,
                 decoration: const InputDecoration(labelText: 'Kategori'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
