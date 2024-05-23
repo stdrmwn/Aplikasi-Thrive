@@ -17,37 +17,49 @@ class _RegisterState extends State<Register> {
   TextEditingController user = TextEditingController();
   TextEditingController pass = TextEditingController();
 
-  Future register() async {
-    var url = Uri.http("localhost", '/login/register.php', {'q': '{http}'});
-    var response = await http.post(url, body: {
-      "username": user.text.toString(),
-      "password": pass.text.toString(),
-    });
-    var data = json.decode(response.body);
-    if (data == "Error") {
-      Fluttertoast.showToast(
-        backgroundColor: Colors.orange,
-        textColor: Colors.white,
-        msg: 'User already exit!',
-        toastLength: Toast.LENGTH_SHORT,
-      );
-    } else {
-      Fluttertoast.showToast(
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-        msg: 'Registration Successful',
-        toastLength: Toast.LENGTH_SHORT,
-      );
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MyApp(),
-        ),
-      );
+  bool isPasswordVisible = false;
+
+  final _formKey = GlobalKey<FormState>();
+
+  Future<void> register() async {
+    if (_formKey.currentState!.validate()) {
+      var url = Uri.http("localhost", '/login/register.php', {'q': '{http}'});
+      var response = await http.post(url, body: {
+        "username": user.text,
+        "password": pass.text,
+      });
+
+      var data = json.decode(response.body);
+
+      if (data == "Error") {
+        Fluttertoast.showToast(
+          backgroundColor: Colors.orange,
+          textColor: Colors.white,
+          msg: 'User already exists!',
+          toastLength: Toast.LENGTH_SHORT,
+        );
+      } else {
+        user.clear();
+        pass.clear();
+        Fluttertoast.showToast(
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+          msg: 'Akun berhasil dibuat',
+          toastLength: Toast.LENGTH_SHORT,
+        );
+        // Navigate to the main screen after a short delay to ensure the toast is visible
+        Future.delayed(Duration(seconds: 2), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MyApp(),
+            ),
+          );
+        });
+      }
     }
   }
 
-  bool isPasswordVisible = false;
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -57,216 +69,136 @@ class _RegisterState extends State<Register> {
           width: double.infinity,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  colors: [Colors.teal.shade200, Colors.purple.shade900])),
+            gradient: LinearGradient(
+              colors: [Colors.teal.shade200, Colors.purple.shade900],
+            ),
+          ),
           child: SingleChildScrollView(
-            child: Column(
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Container(
-                    height: 100,
-                    width: 300,
-                    decoration: const BoxDecoration(
-                        gradient:
-                            LinearGradient(colors: [Colors.red, Colors.yellow]),
-                        boxShadow: [
-                          BoxShadow(
-                              blurRadius: 4,
-                              spreadRadius: 3,
-                              color: Colors.black12)
-                        ],
-                        borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(200),
-                            bottomRight: Radius.circular(200))),
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 35, left: 65),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text(
-                            'Let\'s',
-                            style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(
-                                      color: Colors.black45,
-                                      offset: Offset(1, 1),
-                                      blurRadius: 5)
-                                ]),
-                          ),
-                          Text(
-                            ' Register',
-                            style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.pink.shade600,
-                                shadows: const [
-                                  Shadow(
-                                      color: Colors.black45,
-                                      offset: Offset(1, 1),
-                                      blurRadius: 5)
-                                ]),
-                          ),
-                        ],
+            padding: const EdgeInsets.symmetric(horizontal: 30),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  const SizedBox(height: 40),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Register',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(
-                  height: 40,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30)
-                      .copyWith(bottom: 10),
-                  child: TextField(
+                  const SizedBox(height: 20),
+                  TextFormField(
                     controller: user,
                     style: const TextStyle(color: Colors.white, fontSize: 14.5),
                     decoration: InputDecoration(
-                        prefixIconConstraints:
-                            const BoxConstraints(minWidth: 45),
-                        prefixIcon: const Icon(
-                          Icons.alternate_email_outlined,
-                          color: Colors.white70,
-                          size: 22,
-                        ),
-                        border: InputBorder.none,
-                        hintText: 'Enter Username',
-                        hintStyle: const TextStyle(
-                            color: Colors.white60, fontSize: 14.5),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(100).copyWith(
-                                bottomRight: const Radius.circular(0)),
-                            borderSide:
-                                const BorderSide(color: Colors.white38)),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(100).copyWith(
-                                bottomRight: const Radius.circular(0)),
-                            borderSide:
-                                const BorderSide(color: Colors.white70))),
+                      prefixIcon: const Icon(
+                        Icons.alternate_email_outlined,
+                        color: Colors.white70,
+                        size: 22,
+                      ),
+                      hintText: 'Enter Username',
+                      hintStyle: const TextStyle(
+                          color: Colors.white60, fontSize: 14.5),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a username';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 30)
-                      .copyWith(bottom: 10),
-                  child: TextField(
+                  const SizedBox(height: 20),
+                  TextFormField(
                     controller: pass,
                     style: const TextStyle(color: Colors.white, fontSize: 14.5),
-                    obscureText: isPasswordVisible ? false : true,
+                    obscureText: !isPasswordVisible,
                     decoration: InputDecoration(
-                        prefixIconConstraints:
-                            const BoxConstraints(minWidth: 45),
-                        prefixIcon: const Icon(
-                          Icons.lock,
+                      prefixIcon: const Icon(
+                        Icons.lock,
+                        color: Colors.white70,
+                        size: 22,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.white70,
                           size: 22,
                         ),
-                        suffixIconConstraints:
-                            const BoxConstraints(minWidth: 45, maxWidth: 46),
-                        suffixIcon: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isPasswordVisible = !isPasswordVisible;
-                            });
-                          },
-                          child: Icon(
-                            isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: Colors.white70,
-                            size: 22,
-                          ),
-                        ),
-                        border: InputBorder.none,
-                        hintText: 'Enter Password',
-                        hintStyle: const TextStyle(
-                            color: Colors.white60, fontSize: 14.5),
-                        enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(100).copyWith(
-                                bottomRight: const Radius.circular(0)),
-                            borderSide:
-                                const BorderSide(color: Colors.white38)),
-                        focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(100).copyWith(
-                                bottomRight: const Radius.circular(0)),
-                            borderSide:
-                                const BorderSide(color: Colors.white70))),
-                  ),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    register();
-                  },
-                  child: Container(
-                    height: 53,
-                    width: double.infinity,
-                    margin: const EdgeInsets.symmetric(horizontal: 30),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                        boxShadow: [
-                          BoxShadow(
-                              blurRadius: 4,
-                              color: Colors.black12.withOpacity(.2),
-                              offset: const Offset(2, 2))
-                        ],
-                        borderRadius: BorderRadius.circular(100)
-                            .copyWith(bottomRight: const Radius.circular(0)),
-                        gradient: LinearGradient(colors: [
-                          Colors.purple.shade600,
-                          Colors.amber.shade900
-                        ])),
-                    child: Text('Signup',
-                        style: TextStyle(
-                            color: Colors.white.withOpacity(.8),
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(
-                  height: 50,
-                ),
-                const Text('Already have an account?',
-                    style: TextStyle(color: Colors.white70, fontSize: 13)),
-                const SizedBox(
-                  height: 20,
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const MyHomePage()),
-                    );
-                  },
-                  child: Container(
-                    height: 53,
-                    width: double.infinity,
-                    margin: const EdgeInsets.symmetric(horizontal: 30),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.white60),
-                      borderRadius: BorderRadius.circular(100)
-                          .copyWith(bottomRight: const Radius.circular(0)),
+                        onPressed: () {
+                          setState(() {
+                            isPasswordVisible = !isPasswordVisible;
+                          });
+                        },
+                      ),
+                      hintText: 'Enter Password',
+                      hintStyle: const TextStyle(
+                          color: Colors.white60, fontSize: 14.5),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
-                    child: Text('Login',
-                        style: TextStyle(
-                            color: Colors.white.withOpacity(.8),
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold)),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a password';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
-                )
-              ],
+                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: register,
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.amber.shade700,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 15, horizontal: 80),
+                    ),
+                    child: const Text(
+                      'Signup',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const MyHomePage()),
+                      );
+                    },
+                    child: const Text(
+                      'Already have an account? Login',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
