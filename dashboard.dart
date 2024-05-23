@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart'; // Package for date formatting
 
 void main() => runApp(const MyApp1());
 
@@ -652,7 +653,11 @@ class ProfilePage extends StatelessWidget {
                 const SizedBox(height: 20),
                 ElevatedButton.icon(
                   onPressed: () {
-                    // Add action for editing profile
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const CreateEventPage()),
+                    );
                   },
                   icon: const Icon(Icons.edit, color: Colors.blue),
                   label: const Text('Create Event'),
@@ -835,6 +840,155 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class CreateEventPage extends StatefulWidget {
+  const CreateEventPage({Key? key}) : super(key: key);
+
+  @override
+  _CreateEventPageState createState() => _CreateEventPageState();
+}
+
+class _CreateEventPageState extends State<CreateEventPage> {
+  final _formKey = GlobalKey<FormState>();
+  String _eventName = '';
+  String _eventDate = '';
+  String _startTime = '';
+  String _endTime = '';
+  String _eventLocation = '';
+
+  Future<void> _submitEvent() async {
+    final url =
+        'http://localhost/backendadmin/add_event.php'; // Ganti dengan URL server Anda
+    final response = await http.post(
+      Uri.parse(url),
+      body: {
+        'nama_event': _eventName,
+        'tanggal': _eventDate,
+        'waktu_mulai': _startTime,
+        'waktu_selesai': _endTime,
+        'lokasi': _eventLocation,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Event created successfully!')),
+      );
+      Navigator.pop(context); // Kembali ke halaman profil
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to create event.')),
+      );
+    }
+  }
+
+  String? _validateDate(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter event date';
+    }
+    final dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
+    if (!dateRegex.hasMatch(value)) {
+      return 'Please enter a valid date (YYYY-MM-DD)';
+    }
+    try {
+      DateFormat('yyyy-MM-dd').parseStrict(value);
+      return null;
+    } catch (e) {
+      return 'Please enter a valid date (YYYY-MM-DD)';
+    }
+  }
+
+  String? _validateTime(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter event time';
+    }
+    final timeRegex = RegExp(r'^\d{2}:\d{2}$');
+    if (!timeRegex.hasMatch(value)) {
+      return 'Please enter a valid time (HH:MM)';
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Create Event'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: <Widget>[
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Event Name'),
+                onSaved: (value) {
+                  _eventName = value ?? '';
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter event name';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                decoration:
+                    const InputDecoration(labelText: 'Event Date (YYYY-MM-DD)'),
+                keyboardType: TextInputType.datetime,
+                onSaved: (value) {
+                  _eventDate = value ?? '';
+                },
+                validator: _validateDate,
+              ),
+              TextFormField(
+                decoration:
+                    const InputDecoration(labelText: 'Start Time (HH:MM)'),
+                keyboardType: TextInputType.datetime,
+                onSaved: (value) {
+                  _startTime = value ?? '';
+                },
+                validator: _validateTime,
+              ),
+              TextFormField(
+                decoration:
+                    const InputDecoration(labelText: 'End Time (HH:MM)'),
+                keyboardType: TextInputType.datetime,
+                onSaved: (value) {
+                  _endTime = value ?? '';
+                },
+                validator: _validateTime,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Event Location'),
+                onSaved: (value) {
+                  _eventLocation = value ?? '';
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter event location';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState?.validate() ?? false) {
+                    _formKey.currentState?.save();
+                    _submitEvent();
+                  }
+                },
+                child: const Text('Create Event'),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
