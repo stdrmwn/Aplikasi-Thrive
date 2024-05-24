@@ -2,7 +2,7 @@
 // Initialize the session
 session_start();
  
-// Check if the user is already logged in, if yes then redirect him to welcome page
+// Check if the user is already logged in, if yes then redirect him to the welcome page
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
   header("location: landingpage.php");
   exit;
@@ -66,12 +66,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                             // Redirect user to welcome page
                             header("location: landingpage.php");
                         } else{
-                            // Display an error message if password is not valid
+                            // Display an error message if the password is not valid
                             $password_err = "The password you entered was not valid.";
                         }
                     }
                 } else{
-                    // Display an error message if username doesn't exist
+                    // Display an error message if the username doesn't exist
                     $username_err = "No account found with that username.";
                 }
             } else{
@@ -95,71 +95,79 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <title>Login - THRIVE</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
     <style type="text/css">
-        body{ 
+        body { 
             font: 14px sans-serif; 
-            background-color: #f8f9fa; /* Light gray background */
+            background: linear-gradient(to bottom, #80cbc4, #4a148c); /* Gradient background matching the app */
+            height: 100vh; /* Full height */
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin: 0; /* Remove default margin */
+            color: #ffffff; /* White text color for better visibility */
         }
-        .wrapper{ 
-            width: 360px; 
+        .overlay {
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
             padding: 40px; 
-            background-color: #fff; /* White background */
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1); /* Soft shadow effect */
-            margin: 50px auto; /* Center the form */
-            position: absolute; /* Set the position to absolute */
-            top: 50%; /* Move the top edge of the element to the middle of the viewport */
-            left: 50%; /* Move the left edge of the element to the middle of the viewport */
-            transform: translate(-50%, -50%); /* Translate the element to the center */
+            border-radius: 20px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2); /* Soft shadow effect */
+            text-align: center; /* Center align text */
         }
         .form-group { 
             margin-bottom: 20px; 
         }
         .form-control {
-            border-radius: 4px;
+            border-radius: 25px;
+            height: 45px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            color: #000000; /* Black text color for input fields */
         }
         .btn-primary {
-            background-color: #007bff; /* Blue button */
-            border-color: #007bff;
-            border-radius: 4px;
+            background-color: #ffab00; /* Amber button */
+            border-color: #ffab00;
+            border-radius: 25px;
+            padding: 10px 25px;
+            font-size: 16px;
+            color: #000000; /* Black text color for button */
         }
         .btn-primary:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-            border-color: #0056b3;
+            background-color: #ff6f00; /* Darker amber on hover */
+            border-color: #ff6f00;
+            color: #ffffff; /* White text color on hover */
         }
         .help-block {
-            color: #dc3545; /* Red color for error messages */
+            color: #d32f2f; /* Red color for error messages */
         }
         h2 {
-            color: #343a40; /* Dark grey for headings */
+            color: #ffffff; /* White color for headings */
+            margin-bottom: 20px;
         }
         p {
-            color: #6c757d; /* Grey for paragraphs */
+            color: #ffffff; /* White color for paragraphs */
         }
         a {
-            color: #007bff; /* Blue color for links */
+            color: #ffab00; /* Amber color for links */
         }
         a:hover {
-            color: #0056b3; /* Darker blue on hover */
+            color: #ff6f00; /* Darker amber on hover */
         }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <h2>THRIVE - Login</h2>
-        <p>Please fill in your credentials to thrive.</p>
+    <div class="overlay">
+        <h2>THRIVE</h2>
+        <p>Please enter your username and password to login.</p>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="form-group <?php echo (!empty($username_err)) ? 'has-error' : ''; ?>">
-                <label>Username</label>
-                <input type="text" name="username" class="form-control" value="<?php echo $username; ?>">
+                <input type="text" name="username" class="form-control" placeholder="Username" value="<?php echo $username; ?>">
                 <span class="help-block"><?php echo $username_err; ?></span>
             </div>    
             <div class="form-group <?php echo (!empty($password_err)) ? 'has-error' : ''; ?>">
-                <label>Password</label>
-                <input type="password" name="password" class="form-control">
+                <input type="password" name="password" class="form-control" placeholder="Password">
                 <span class="help-block"><?php echo $password_err; ?></span>
             </div>
             <div class="form-group">
-                <input type="submit" class="btn btn-primary" value="THRIVE">
+                <input type="submit" class="btn btn-primary" value="Login">
             </div>
             <p>Don't have an account? <a href="register.php">Sign up now</a>.</p>
         </form>
