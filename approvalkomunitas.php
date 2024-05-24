@@ -6,10 +6,130 @@
 
 	<!-- Boxicons -->
 	<link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
-	<!-- My CSS -->
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
+	<!-- Custom CSS -->
 	<link rel="stylesheet" href="style.css">
 
-	<title>AdminHub</title>
+	<title>AdminHub - Komunitas</title>
+
+	<style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        #sidebar {
+            width: 250px;
+            height: 100vh;
+            background-color: #2c3e50;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 20px;
+            color: #f39c12; /* Kuning tua untuk teks */
+        }
+
+        #sidebar .brand {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        #sidebar .brand .text {
+            color: #f39c12; /* Kuning tua */
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        #sidebar .side-menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        #sidebar .side-menu li {
+            width: 100%;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #sidebar .side-menu li a {
+            color: #f39c12; /* Kuning tua */
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        #sidebar .side-menu li a i {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+
+        #sidebar .side-menu li.active,
+        #sidebar .side-menu li:hover {
+            background-color: #1abc9c;
+        }
+
+        #sidebar .side-menu li a span {
+            font-size: 16px;
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        .content .page-header {
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        .content .page-header h2 {
+            margin-top: 0;
+            color: #34495e;
+        }
+
+        .content .container-fluid {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .content .panel {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .content .panel-heading {
+            background-color: #3498db;
+            color: #fff;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .content .panel-title {
+            font-size: 18px;
+        }
+
+        .content .btn-primary {
+            background-color: #3498db;
+            border-color: #3498db;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        .content .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+
+        .content .panel-body p {
+            color: #7f8c8d;
+        }
+    </style>
 </head>
 <body>
 
@@ -19,13 +139,13 @@
 			<span class="text">Thrive.org</span>
 		</a>
 		<ul class="side-menu top">
-			<li class="active">
+			<li>
 				<a href="landingpage.php">
 					<i class='bx bxs-dashboard' ></i>
 					<span class="text">Dashboard</span>
 				</a>
 			</li>
-			<li>
+			<li class="active">
 				<a href="approvalkomunitas.php">
 					<i class='bx bxs-doughnut-chart' ></i>
 					<span class="text">Komunitas</span>
@@ -37,103 +157,80 @@
 					<span class="text">Event</span>
 				</a>
 			</li>
+            <li>
+				<a href="signout.php">
+					<i class='bx bx-log-out'></i>
+					<span class="text">LOG OUT</span>
+				</a>
+			</li>
 		</ul>
 	</section>
+	<!-- SIDEBAR -->
 
-    <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.css">
-    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.js"></script>
-    <style type="text/css">
+	<!-- CONTENT -->
+	<div class="content">
+		<div class="page-header clearfix">
+			<h2 class="pull-left">Komunitas</h2>
+			<div class="pull-right">
+				<form method="GET" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" class="form-inline my-2 my-lg-0">
+					<input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="search">
+					<button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+				</form>
+			</div>
+		</div>
+		<div class="container-fluid">
+			<?php
+			// Include config1 file
+			require_once "config1.php";
 
+			// Process search query
+			$search = isset($_GET['search']) ? $_GET['search'] : '';
+			if (!empty($search)) {
+				$sql = "SELECT * FROM communities WHERE name LIKE '%$search%' OR description LIKE '%$search%' OR category LIKE '%$search%'";
+			} else {
+				$sql = "SELECT * FROM communities";
+			}
 
-        .wrapper{
-            width: 650px;
-            margin: 0 auto;
-        }
-        .page-header h2{
-            margin-top: 0;
-        }
-        table tr td:last-child a{
-            margin-right: 5px;
-        }
-    </style>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $('[data-toggle="tooltip"]').tooltip();
-        });
-    </script>
-</head>
-<body>
+			if($result = mysqli_query($link, $sql)){
+				if(mysqli_num_rows($result) > 0){
+					echo "<table class='table table-bordered table-striped'>";
+					echo "<thead>";
+					echo "<tr>";
+					echo "<th>Id</th>";
+					echo "<th>Name</th>";
+					echo "<th>Description</th>";
+					echo "<th>Category</th>";
+					echo "<th>Pengaturan</th>";
+					echo "</tr>";
+					echo "</thead>";
+					echo "<tbody>";
+					while($row = mysqli_fetch_array($result)){
+						echo "<tr>";
+						echo "<td>" . $row['id'] . "</td>";
+						echo "<td>" . $row['name'] . "</td>";
+						echo "<td>" . $row['description'] . "</td>";
+						echo "<td>" . $row['category'] . "</td>";
+						echo "<td>";
+						echo "<a href='terima.php?id=". $row['id'] ."' title='Terima' data-toggle='tooltip' class='btn btn-success btn-sm'>Terima</a>";
+						echo "<a href='tolakkomunitas.php?id=". $row['id'] ."' title='Tolak' data-toggle='tooltip' class='btn btn-danger btn-sm'>Tolak</a>";
+						echo "</td>";
+						echo "</tr>";
+					}
+					echo "</tbody>";
+					echo "</table>";
 
-<div class="wrapper">
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-12">
-                <div class="page-header clearfix">
-                    <h2 class="pull-left">Komunitas</h2>
-                    <div class="pull-right">
-                        <form method="GET" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" class="form-inline my-2 my-lg-0">
-                            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search" name="search">
-                            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-                        </form>
-                    </div>
-                </div>
-                <?php
-                // Include config1 file
-                require_once "config1.php";
+					// Free result set
+					mysqli_free_result($result);
+				} else{
+					echo "<p class='lead'><em>No records were found.</em></p>";
+				}
+			} else{
+				echo "ERROR: Could not able to execute $sql. " . mysqli_error($link);
+			}
+			?>
+		</div>
+	</div>
+	<!-- CONTENT -->
 
-                // Process search query
-                $search = isset($_GET['search']) ? $_GET['search'] : '';
-                if (!empty($search)) {
-                    $sql = "SELECT * FROM communities WHERE name LIKE '%$search%' OR description LIKE '%$search%' OR category LIKE '%$search%'";
-                } else {
-                    $sql = "SELECT * FROM communities";
-                }
-
-                if($result = mysqli_query($link, $sql)){
-                    if(mysqli_num_rows($result) > 0){
-                        echo "<table class='table table-bordered table-striped'>";
-                        echo "<thead>";
-                        echo "<tr>";
-                        echo "<th>Id</th>";
-                        echo "<th>Name</th>";
-                        echo "<th>Description</th>";
-                        echo "<th>Category</th>";
-                        echo "<th>Pengaturan</th>";
-                        echo "</tr>";
-                        echo "</thead>";
-                        echo "<tbody>";
-                        while($row = mysqli_fetch_array($result)){
-                            echo "<tr>";
-                            echo "<td>" . $row['id'] . "</td>";
-                            echo "<td>" . $row['name'] . "</td>";
-                            echo "<td>" . $row['description'] . "</td>";
-                            echo "<td>" . $row['category'] . "</td>";
-                            echo "<td>";
-                            echo "<a href='terima.php?id=". $row['id'] ."' title='Terima' data-toggle='tooltip'>Terima</a>";
-                            echo "<a href='tolakkomunitas.php?id=". $row['id'] ."' title='Tolak' data-toggle='tooltip'>Tolak</a>";
-                            echo "</td>";
-                            echo "</tr>";
-                        }
-                        echo "</tbody>";
-                        echo "</table>";
-
-                        // Free result set
-                        mysqli_free_result($result);
-                    } else{
-                        echo "<p class='lead'><em>No records were found.</em></p>";
-                    }
-                } else{
-                    echo "ERROR: Could not able to execute $sql. " . mysqli_error($link);
-                }
-                ?>
-            </div>
-        </div>
-    </div>
-</div>
+</body>
+</html>
